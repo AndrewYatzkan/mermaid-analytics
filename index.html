@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mermaid Analytics</title>
+    <style type="text/css">
+        body {
+            background: #F1F1F1;
+            margin: 0;
+            font-family: -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
+        }
+
+        div.container {
+            width: 50vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0 auto;
+            align-items: center;
+        }
+
+        p {
+            text-align: justify;
+        }
+
+        div > canvas {
+            height: 50vh;
+            width: 100%;
+        }
+
+        span.error {
+            color: red;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>mermaid-analytics</h1>
+        <p>
+            For more context on this page, check out <a href="https://x.com/AndrewYatzkan/status/1799293580088930660" target="_blank">my post on X</a>.
+            In short, this is a demonstration of using Mermaid.js diagrams embedded in GitHub markdown as view counters. Visit <a href="https://github.com/AndrewYatzkan/mermaid-analytics">this repo</a> and you should see your view reflected in the graph below within a few minutes.
+    </p>
+        <span class="error"></span>
+        <div><canvas></canvas></div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+    <script>
+        const error = document.querySelector('span.error');
+        const c = document.querySelector('canvas');
+        const ctx = c.getContext('2d');
+
+        (async () => {
+            try {
+                let req = await fetch('http://ec2-3-141-153-129.us-east-2.compute.amazonaws.com:8090/metrics');
+                let data = await req.json();
+
+                const config = {
+                  type: 'line',
+                  data: {
+                    labels: [],
+                    datasets: [{
+                      data: data.map(d => { return {x: new Date(d.timeStamp).getTime(), y: d?.count || 0}}),
+                      label: "Views",
+                      borderColor: "#3e95cd",
+                      fill: false,
+                    }]
+                  },
+                  options: {
+                    maintainAspectRatio: false,
+                    legend: { display: false },
+                    scales: {
+                      yAxes: [{ ticks: { stepSize: 1 } }],
+                      xAxes: [{
+                        type: 'time',
+                        distribution: 'linear',
+                      }],
+                      title: {
+                        display: false,
+                      }
+                    }
+                  },
+                };
+
+                new Chart(ctx, config);
+            } catch (e) {
+                error.innerHTML = 'Something went wrong (someone probably spammed my Azure API key). Click <a href="https://x.com/intent/post?text=mermaid+analytics+broken+pls+fix+%40andrewyatzkan">here</a> if you want me to fix it.';
+            }
+        })();
+
+    </script>
+</body>
+</html>
