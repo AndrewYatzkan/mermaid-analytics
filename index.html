@@ -54,7 +54,7 @@
 
         (async () => {
             try {
-                let req = await fetch('http://ec2-3-141-153-129.us-east-2.compute.amazonaws.com:8090/metrics');
+                let req = await fetch('https://mermaid.uiuc.io/metrics');
                 let data = await req.json();
 
                 const config = {
